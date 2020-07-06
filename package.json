@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/unicornteacup/tinyapp/issues"
   },
-  "homepage": "https://github.com/unicornteacup/tinyapp#readme"
+  "homepage": "https://github.com/unicornteacup/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
