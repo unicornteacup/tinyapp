@@ -20,7 +20,7 @@ function generateRandomString() {
       return string + func()
     }, '').substring(0, length)
   }
-  console.log(String.random(6))
+  return(String.random(6))
 }
 
 app.get("/", (req, res) => {
@@ -44,16 +44,33 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
+// How do I save it properly to the database and do the redirect?
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  console.log(req.body); // Log the POST request body to the console
+           // Respond with 'Ok' (we will replace this)
+  let longURL = req.body.longURL
+  console.log(longURL)
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  console.log(urlDatabase);
+  // let urlDataTemplate = { shortURL: shortURL, longURL: longURL};
+  res.redirect(`/urls/:${shortURL}`);
+  // res.redirect("urls_show", urlDataTemplate);
 });
 
+//  Not showing the long URL on the page.. not sure why??
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
   let urlDataTemplate = { shortURL: shortURL, longURL: longURL};
   res.render("urls_show", urlDataTemplate);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  let shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];// const longURL = ...
+  res.redirect(longURL);
 });
 
 app.listen(PORT, () => {
