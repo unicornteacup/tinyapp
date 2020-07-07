@@ -55,7 +55,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = longURL;
   console.log(urlDatabase);
   // let urlDataTemplate = { shortURL: shortURL, longURL: longURL};
-  res.redirect(`/urls/:${shortURL}`);
+  res.redirect(`/urls/${shortURL}`);
   // res.redirect("urls_show", urlDataTemplate);
 });
 
