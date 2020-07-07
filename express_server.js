@@ -26,6 +26,11 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", urlDataTemplate);
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  let urlDataTemplate = { shortURL: req.params.shortURL, longURL: req.params.longURL};
+  res.render("urls_show", urlDataTemplate);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
