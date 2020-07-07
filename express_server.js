@@ -10,6 +10,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+function generateRandomString() {
+  String.random = function (length) {
+    let radom13chars = function () {
+      return Math.random().toString(16).substring(2, 15)
+    }
+    let loops = Math.ceil(length / 13)
+    return new Array(loops).fill(radom13chars).reduce((string, func) => {
+      return string + func()
+    }, '').substring(0, length)
+  }
+  console.log(String.random(6))
+}
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -29,6 +42,11 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
