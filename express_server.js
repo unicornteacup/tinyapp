@@ -58,7 +58,7 @@ app.get("/register", (req, res) => {
     urls: urlDatabase,
     username: req.cookies["username"]
   };
-  res.render("urls_register", templateVars);
+  res.render("register", templateVars);
 });
 
 app.post("/login", (req, res) => {
@@ -66,6 +66,20 @@ app.post("/login", (req, res) => {
   //const username = req.body.username;
   res.cookie("username", req.body.username);
   
+  res.redirect("/urls");
+})
+
+app.post("/register", (req, res) => {
+
+  let email = req.body.name;
+  console.log(email);
+  let password = req.body.password;
+  console.log(password);
+    // create randon user id
+  const id = generateRandomString();;
+  console.log(id);
+  users[id] = {id: id, email: email, password: password}
+  console.log(users);
   res.redirect("/urls");
 })
 
