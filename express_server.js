@@ -2,7 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 app.set("view engine", "ejs"); 
 
 const urlDatabase = {
@@ -23,6 +25,11 @@ function generateRandomString() {
   return(String.random(6))
 }
 
+// app.get('/', function (req, res) {
+//   // Cookies that have not been signed
+//   console.log('Cookies: ', req.cookies)
+// });
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -31,12 +38,15 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.get("/urls", (req, res) => {
-  let urlDataTemplate = { urls: urlDatabase };
+  let urlDataTemplate = { 
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render("urls_index", urlDataTemplate);
 });
 
@@ -84,6 +94,14 @@ app.post("/urls/:shortURL/update", (req, res) => {
   console.log(shortURL.newURL)
   let longURL = req.body.updateUrl;
   urlDatabase[shortURL] = longURL;
+  res.redirect("/urls");
+})
+
+app.post("/login", (req, res) => {
+  console.log(req.body.username);
+  //const username = req.body.username;
+  res.cookie('username', req.body.username);
+  
   res.redirect("/urls");
 })
 
