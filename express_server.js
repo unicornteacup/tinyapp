@@ -24,6 +24,8 @@ const users = {
     password: "dishwasher-funk"
   }
 }
+
+
 function generateRandomString() {
   String.random = function (length) {
     let radom13chars = function () {
@@ -55,31 +57,38 @@ app.get("/urls.json", (req, res) => {
 // });
 app.get("/register", (req, res) => {
   let templateVars = { 
-    urls: urlDatabase,
-    username: req.cookies["username"]
+    email: ""
+    //username: req.cookies["username"]
   };
   res.render("register", templateVars);
 });
 
 app.post("/login", (req, res) => {
-  console.log(req.body.username);
-  //const username = req.body.username;
-  res.cookie("username", req.body.username);
-  
-  res.redirect("/urls");
+  console.log(req.body.email);
+  const email = req.body.email;
+  for (let user of users) {
+    if (email === user.email) {
+      res.cookie("user_id");
+      res.redirect("/urls");
+    } else {
+      res.redirect("register");
+    }
+  }
+    
 })
 
 app.post("/register", (req, res) => {
-
+  // access entered email from form
   let email = req.body.name;
-  console.log(email);
+  // access entered pw from form
   let password = req.body.password;
-  console.log(password);
-    // create randon user id
+  // create randon user id
   const id = generateRandomString();;
-  console.log(id);
+  // add new user to database
   users[id] = {id: id, email: email, password: password}
-  console.log(users);
+  // add cookie for user_id
+  res.cookie("user_id", id);
+  //redirect
   res.redirect("/urls");
 })
 
@@ -94,15 +103,18 @@ app.post("/logout", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"]
+    email: users[req.cookies["user_id"]].email
   };
+
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"]
+    users: users,
+    user: req.cookies["user_id"]
+    //username: req.cookies["username"]
   };
   res.render("urls_new", templateVars);
 });
