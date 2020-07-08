@@ -42,12 +42,28 @@ app.get("/urls.json", (req, res) => {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
+app.post("/login", (req, res) => {
+  console.log(req.body.username);
+  //const username = req.body.username;
+  res.cookie("username", req.body.username);
+  
+  res.redirect("/urls");
+})
+
+app.post("/logout", (req, res) => {
+  //console.log(req.body.username);
+  //const username = req.body.username;
+  res.clearCookie("username");
+  
+  res.redirect("/urls");
+})
+
 app.get("/urls", (req, res) => {
-  let urlDataTemplate = { 
+  let templateVars = { 
     urls: urlDatabase,
     username: req.cookies["username"]
   };
-  res.render("urls_index", urlDataTemplate);
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -71,8 +87,12 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
-  let urlDataTemplate = { shortURL: shortURL, longURL: longURL};
-  res.render("urls_show", urlDataTemplate);
+  let templateVars = { 
+    shortURL: shortURL, 
+    longURL: longURL,
+    username: req.cookies["username"]
+  };
+  res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -94,14 +114,6 @@ app.post("/urls/:shortURL/update", (req, res) => {
   console.log(shortURL.newURL)
   let longURL = req.body.updateUrl;
   urlDatabase[shortURL] = longURL;
-  res.redirect("/urls");
-})
-
-app.post("/login", (req, res) => {
-  console.log(req.body.username);
-  //const username = req.body.username;
-  res.cookie('username', req.body.username);
-  
   res.redirect("/urls");
 })
 
