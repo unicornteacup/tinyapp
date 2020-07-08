@@ -54,12 +54,10 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
   console.log(urlDatabase);
-  // let urlDataTemplate = { shortURL: shortURL, longURL: longURL};
   res.redirect(`/urls/${shortURL}`);
-  // res.redirect("urls_show", urlDataTemplate);
+  
 });
 
-//  Not showing the long URL on the page.. not sure why??
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
   let longURL = urlDatabase[shortURL];
@@ -77,6 +75,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   console.log(req.params)
   let shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
+  res.redirect("/urls");
+})
+
+app.post("/urls/:shortURL/update", (req, res) => {
+  console.log(req.body)
+  let shortURL = req.params.shortURL;
+  console.log(shortURL.newURL)
+  let longURL = req.body.updateUrl;
+  urlDatabase[shortURL] = longURL;
   res.redirect("/urls");
 })
 
