@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
-app.set("view engine", "ejs"); 
+app.set("view engine", "ejs");
 
 //*** EXAMPLE */
 //const password = "purple-monkey-dinosaur"; // found in the req.params object
@@ -33,10 +33,9 @@ const users = {
 const emailLookup = function(email) {
   for (let user in users) {
     if (users[user].email === email) {
-      return true;
-    } else {
-      return false
-    }
+      return users[user];
+    } 
+    
   } 
 };
 
@@ -100,22 +99,23 @@ app.post("/login", (req, res) => {
   console.log(req.body.email);
   const email = req.body.email;
   const password = req.body.password;
+  console.log(password)
   
   if (!req.body.email) {
-    res.send("Error 400, No email entered");
-  } else if (!req.body.password) {
-    res.send("Error 400, No password entered");
-  } else if (emailLookup(email)) {
-    for (let user in users) {
-      let id = users[user].id
-      if (users[user].email === email && users[user].password !== password) {
-        res.send("Error Password incorrect");
-      } else if (users[user].email === email && users[user].password === password) {
-        res.cookie("user_id", id);
-        res.redirect("/urls");
-      } 
-    }
-  } else {
+    return res.send("Error 400, No email entered");
+  } 
+  if (!req.body.password) {
+    return res.send("Error 400, No password entered");
+  } 
+  const user = emailLookup(email)
+  if (user) {
+    if (bcrypt.compareSync(password, user.hashedPassword)) {
+      res.cookie("user_id", user.id);
+      res.redirect("/urls");
+    } else {
+      res.send("Error Password incorrect");
+    } 
+  } else{
     res.send("Error 403, User not found");
   }
 }) 
@@ -128,15 +128,13 @@ app.post("/register", (req, res) => {
     res.send("Error 400, No password entered");
   } else if (emailLookup(req.body.name)) {
     res.send("Error 400, user already exists");
-  } else {  // access entered email from form
+  } else {  
     let email = req.body.name;
-    // access entered pw from form
     let password = req.body.password;
     const hashedPassword = bcrypt.hashSync(password, 10);
-    // create randon user id
     const id = generateRandomString();;
-    // add new user to database
-    users[id] = {id: id, email: email, password: hashedPassword}
+    users[id] = {id: id, email: email, hashedPassword: hashedPassword}
+    console.log(users)
     // add cookie for user_id
     res.cookie("user_id", id);
     //redirect
