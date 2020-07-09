@@ -132,10 +132,11 @@ app.post("/register", (req, res) => {
     let email = req.body.name;
     // access entered pw from form
     let password = req.body.password;
+    const hashedPassword = bcrypt.hashSync(password, 10);
     // create randon user id
     const id = generateRandomString();;
     // add new user to database
-    users[id] = {id: id, email: email, password: password}
+    users[id] = {id: id, email: email, password: hashedPassword}
     // add cookie for user_id
     res.cookie("user_id", id);
     //redirect
