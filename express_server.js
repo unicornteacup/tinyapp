@@ -3,9 +3,14 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs"); 
+
+//*** EXAMPLE */
+//const password = "purple-monkey-dinosaur"; // found in the req.params object
+//const hashedPassword = bcrypt.hashSync(password, 10);
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
