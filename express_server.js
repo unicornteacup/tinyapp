@@ -25,6 +25,15 @@ const users = {
   }
 }
 
+const emailLookup = function(email) {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return true;
+    } else {
+      return false
+    }
+  } 
+};
 
 function generateRandomString() {
   String.random = function (length) {
@@ -78,18 +87,29 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  // access entered email from form
-  let email = req.body.name;
-  // access entered pw from form
-  let password = req.body.password;
-  // create randon user id
-  const id = generateRandomString();;
-  // add new user to database
-  users[id] = {id: id, email: email, password: password}
-  // add cookie for user_id
-  res.cookie("user_id", id);
-  //redirect
-  res.redirect("/urls");
+
+  
+  if (!req.body.name) {
+    res.send("Error 400, No email entered");
+  } else if (!req.body.password) {
+    res.send("Error 400, No password entered");
+  } else if (emailLookup(req.body.name)) {
+    res.send("Error 400, user already exists");
+  } else {  // access entered email from form
+    let email = req.body.name;
+    // access entered pw from form
+    let password = req.body.password;
+    // create randon user id
+    const id = generateRandomString();;
+    // add new user to database
+    users[id] = {id: id, email: email, password: password}
+    // add cookie for user_id
+    res.cookie("user_id", id);
+    //redirect
+    res.redirect("/urls");
+
+  }
+
 })
 
 app.post("/logout", (req, res) => {
