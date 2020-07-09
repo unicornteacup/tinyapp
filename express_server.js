@@ -35,6 +35,18 @@ const emailLookup = function(email) {
   } 
 };
 
+const urlsForUser = function(user_id) {
+  let urlList = {
+  }
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === user_id) {
+      urlList[shortURL] = urlDatabase[shortURL]
+    }
+  }
+  return(urlList);
+}
+
+
 function generateRandomString() {
   String.random = function (length) {
     let radom13chars = function () {
@@ -135,11 +147,24 @@ app.post("/logout", (req, res) => {
 })
 
 app.get("/urls", (req, res) => {
-  let templateVars = { 
-    urls: urlDatabase
-  };
+  if (!req.cookies["user_id"]) {
+    res.redirect("/notloggedin");
+  } else {
+    urlList = urlsForUser(req.cookies["user_id"])
 
+    let templateVars = { 
+      urls: urlList,
+      email: users[req.cookies["user_id"]].email
+    };
   res.render("urls_index", templateVars);
+  };
+});
+
+app.get("/notloggedin", (req, res) => {
+  let templateVars = { 
+    email: ""
+  };
+  res.render("logReg", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -151,7 +176,7 @@ app.get("/urls/new", (req, res) => {
       email: users[req.cookies["user_id"]].email
     };
     res.render("urls_new", templateVars);
-  }
+  };
 });
 
 
@@ -172,16 +197,25 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  console.log(shortURL)
-  console.log(urlDatabase[shortURL])
-  let longURL = urlDatabase[shortURL]["longURL"];
-  
-  let templateVars = { 
-    shortURL: shortURL, 
-    longURL: longURL
-    //email: users[req.cookies["user_id"]].email
-  };
+  const urlList = urlsForUser(req.cookies["user_id"])
+  console.log(urlList)
+  if (!req.cookies["user_id"]) {
+    res.redirect("/notloggedin");
+  } else if (urlList.userID !== req.cookies["user_id"]) {
+    res.send(`This URL does not belong to ${users[req.cookies["user_id"]].email}`)
+  } else {
+    
+    console.log(shortURL)
+    console.log(urlDatabase[shortURL])
+    let longURL = urlDatabase[shortURL]["longURL"];
+    
+    let templateVars = { 
+      shortURL: shortURL, 
+      longURL: longURL,
+      email: users[req.cookies["user_id"]].email
+    };
   res.render("urls_show", templateVars);
+  };
 });
 
 app.get("/u/:shortURL", (req, res) => {
