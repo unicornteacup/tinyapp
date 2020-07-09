@@ -136,8 +136,7 @@ app.post("/logout", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = { 
-    urls: urlDatabase,
-    email: users[req.cookies["user_id"]].email
+    urls: urlDatabase
   };
 
   res.render("urls_index", templateVars);
@@ -179,15 +178,16 @@ app.get("/urls/:shortURL", (req, res) => {
   
   let templateVars = { 
     shortURL: shortURL, 
-    longURL: longURL,
-    email: users[req.cookies["user_id"]].email
+    longURL: longURL
+    //email: users[req.cookies["user_id"]].email
   };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];// const longURL = ...
+  console.log(urlDatabase[shortURL]["longURL"])
+  const longURL = urlDatabase[shortURL]["longURL"];// const longURL = ...
   res.redirect(longURL);
 });
 
