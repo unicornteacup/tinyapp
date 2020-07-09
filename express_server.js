@@ -93,10 +93,12 @@ app.post("/login", (req, res) => {
   } else if (emailLookup(email)) {
     for (let user in users) {
       let id = users[user].id
-      if (users[user].email === email && users[user].password === password) {
+      if (users[user].email === email && users[user].password !== password) {
+        res.send("Error Password incorrect");
+      } else if (users[user].email === email && users[user].password === password) {
         res.cookie("user_id", id);
         res.redirect("/urls");
-      }
+      } 
     }
   } else {
     res.send("Error 403, User not found");
@@ -131,7 +133,7 @@ app.post("/logout", (req, res) => {
   //const username = req.body.username;
   res.clearCookie("user_id");
   
-  res.redirect("/urls");
+  res.redirect("/login");
 })
 
 app.get("/urls", (req, res) => {
