@@ -8,8 +8,8 @@ app.use(cookieParser());
 app.set("view engine", "ejs"); 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID"}
 };
 
 const users = { 
@@ -67,7 +67,6 @@ app.get("/urls.json", (req, res) => {
 app.get("/register", (req, res) => {
   let templateVars = { 
     email: ""
-    //username: req.cookies["username"]
   };
   res.render("register", templateVars);
 });
@@ -75,7 +74,6 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   let templateVars = { 
     email: ""
-    //username: req.cookies["username"]
   };
   res.render("login", templateVars);
 });
@@ -163,9 +161,11 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
            // Respond with 'Ok' (we will replace this)
   let longURL = req.body.longURL
+  let userID = users[req.cookies["user_id"]].id
   console.log(longURL)
+  console.log(userID)
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {longURL: longURL, userID: userID}
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
   
@@ -173,7 +173,10 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  let longURL = urlDatabase[shortURL];
+  console.log(shortURL)
+  console.log(urlDatabase[shortURL])
+  let longURL = urlDatabase[shortURL]["longURL"];
+  
   let templateVars = { 
     shortURL: shortURL, 
     longURL: longURL,
