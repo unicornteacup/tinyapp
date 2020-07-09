@@ -81,21 +81,29 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+
   console.log(req.body.email);
   const email = req.body.email;
-  for (let user of users) {
-    if (email === user.email) {
-      res.cookie("user_id");
-      res.redirect("/urls");
-    } else {
-      res.redirect("register");
+  const password = req.body.password;
+  
+  if (!req.body.email) {
+    res.send("Error 400, No email entered");
+  } else if (!req.body.password) {
+    res.send("Error 400, No password entered");
+  } else if (emailLookup(email)) {
+    for (let user in users) {
+      let id = users[user].id
+      if (users[user].email === email && users[user].password === password) {
+        res.cookie("user_id", id);
+        res.redirect("/urls");
+      }
     }
+  } else {
+    res.send("Error 403, User not found");
   }
-    
-})
+}) 
 
 app.post("/register", (req, res) => {
-
   
   if (!req.body.name) {
     res.send("Error 400, No email entered");
@@ -115,9 +123,7 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", id);
     //redirect
     res.redirect("/urls");
-
   }
-
 })
 
 app.post("/logout", (req, res) => {
