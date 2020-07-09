@@ -201,7 +201,7 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log(urlList)
   if (!req.cookies["user_id"]) {
     res.redirect("/notloggedin");
-  } else if (urlList.userID !== req.cookies["user_id"]) {
+  } else if (urlList[shortURL].userID !== req.cookies["user_id"]) {
     res.send(`This URL does not belong to ${users[req.cookies["user_id"]].email}`)
   } else {
     
@@ -226,20 +226,33 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log(req.params)
+  const urlList = urlsForUser(req.cookies["user_id"]);
   let shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  
-  res.redirect("/urls");
+  if (!req.cookies["user_id"] || urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
+    res.send("This URL can only be deleted by the owner");
+  } else {
+    console.log(req.params)
+    let shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  }
 })
 
 app.post("/urls/:shortURL/update", (req, res) => {
-  console.log(req.body)
+  const urlList = urlsForUser(req.cookies["user_id"]);
   let shortURL = req.params.shortURL;
-  console.log(shortURL.newURL)
-  let longURL = req.body.updateUrl;
-  urlDatabase[shortURL] = longURL;
-  res.redirect("/urls");
+  if (!req.cookies["user_id"] || urlList[shortURL].userID !== req.cookies["user_id"]) {
+    res.send("This URL can only be edited by the owner");
+  } else {
+    console.log(req.body)
+
+    console.log(shortURL.newURL)
+    let longURL = req.body.updateUrl;
+    urlDatabase[shortURL] = longURL;
+    res.redirect("/urls");
+  }
+  
+  
 })
 
 app.listen(PORT, () => {
