@@ -72,6 +72,14 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  let templateVars = { 
+    email: ""
+    //username: req.cookies["username"]
+  };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
   console.log(req.body.email);
   const email = req.body.email;
