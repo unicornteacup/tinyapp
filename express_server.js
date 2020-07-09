@@ -146,12 +146,15 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { 
-    urls: urlDatabase,
-    email: users[req.cookies["user_id"]].email
-    //username: req.cookies["username"]
-  };
-  res.render("urls_new", templateVars);
+  if (!req.cookies["user_id"]) {
+    res.redirect("/login");
+  } else {
+    let templateVars = { 
+      urls: urlDatabase,
+      email: users[req.cookies["user_id"]].email
+    };
+    res.render("urls_new", templateVars);
+  }
 });
 
 
