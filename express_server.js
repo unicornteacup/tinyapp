@@ -60,7 +60,7 @@ app.get("/register", (req, res) => {
   } else {
     let templateVars = {
       email: ""
-    }
+    };
     res.render("register", templateVars);
   }
 });
@@ -146,7 +146,8 @@ app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/notloggedin");
   } else {
-    const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
+    const userID = users[req.session.user_id].id;
+    const urlList = helper.urlsForUser(userID, urlDatabase);
     let templateVars = {
       urls: urlList,
       email: users[req.session.user_id].email
@@ -157,13 +158,9 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
-  console.log(longURL)
   const userID = users[req.session.user_id].id;
-  console.log(userID)
   const shortURL = helper.generateRandomString();
-  console.log(shortURL)
   urlDatabase[shortURL] = {longURL: longURL, userID: userID};
-  console.log(urlDatabase[shortURL]);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -176,9 +173,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.send("This URL does not exist");
   }
   const userID = users[req.session.user_id].id;
-  console.log(users[req.session.user_id]);
   const urlList = helper.urlsForUser(userID, urlDatabase);
-  console.log(urlList);
   if (urlDatabase[shortURL].userID !== userID) {
     return res.send(`This URL does not belong to ${users[req.session.user_id].email}`);
   } else {
@@ -196,7 +191,7 @@ app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
     return res.send("There is no URL associated with this link");
-  } else{
+  } else {
     const longURL = urlDatabase[shortURL]["longURL"];
     res.redirect(longURL);
   }
@@ -204,21 +199,20 @@ app.get("/u/:shortURL", (req, res) => {
 
 // EDIT OR DELETE URL
 
-app.post("/urls/:shortURL/update", (req, res) => {
-  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
+app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  if (!req.session.user_id || urlList[shortURL].userID !== req.session.user_id) {
+  if (!users[req.session.user_id] || urlDatabase[shortURL].userID !== req.session.user_id) {
     return res.send("This URL can only be edited by the owner");
   } else {
-    const longURL = req.body.longURL;
-    urlDatabase[shortURL] = longURL;
+    const longURL = req.body.updateUrl;
+    urlDatabase[shortURL]["longURL"] = longURL;
     res.redirect("/urls");
   }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
   const shortURL = req.params.shortURL;
+  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
   if (!req.session.user_id || urlDatabase[shortURL].userID !== req.session.user_id) {
     return res.send("This URL can only be deleted by the owner");
   } else {
