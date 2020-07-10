@@ -41,18 +41,39 @@ const users = {
 
 // LOGIN, REGISTER & LOGOUT ENDPOINTS
 
+app.get("/", (req, res) => {
+  if (!req.session.user_id) {
+    res.redirect("/login");
+  } else {
+    const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
+    let templateVars = {
+      urls: urlList,
+      email: users[req.session.user_id].email
+    };
+    res.render("urls_index", templateVars);
+  }
+});
+
 app.get("/register", (req, res) => {
-  let templateVars = {
-    email: ""
-  };
-  res.render("register", templateVars);
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    let templateVars = {
+      email: ""
+    }
+    res.render("register", templateVars);
+  }
 });
 
 app.get("/login", (req, res) => {
-  let templateVars = {
-    email: ""
-  };
-  res.render("login", templateVars);
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  } else {
+    let templateVars = {
+      email: ""
+    };
+    res.render("login", templateVars);
+  }
 });
 
 app.post("/login", (req, res) => {
@@ -85,8 +106,8 @@ app.post("/register", (req, res) => {
   } else if (helper.getUserByEmail(req.body.name, users)) {
     res.send("Error 400, user already exists");
   } else {
-    let email = req.body.name;
-    let password = req.body.password;
+    const email = req.body.name;
+    const password = req.body.password;
     const hashedPassword = bcrypt.hashSync(password, 10);
     const id = helper.generateRandomString();
     users[id] = {id: id, email: email, hashedPassword: hashedPassword};
@@ -97,7 +118,7 @@ app.post("/register", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 
 app.get("/notloggedin", (req, res) => {
@@ -135,22 +156,33 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let longURL = req.body.longURL;
-  let userID = users[req.session.user_id].id;
+  const longURL = req.body.longURL;
+  console.log(longURL)
+  const userID = users[req.session.user_id].id;
+  console.log(userID)
   const shortURL = helper.generateRandomString();
+  console.log(shortURL)
   urlDatabase[shortURL] = {longURL: longURL, userID: userID};
+  console.log(urlDatabase[shortURL]);
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL;
-  const urlList = helper.urlsForUser(users[req.session.user_id], urlDatabase);
-  if (!req.session.user_id) {
+  if (!users[req.session.user_id]) {
     res.redirect("/notloggedin");
-  } else if (urlList[shortURL].userID !== users[req.session.user_id]) {
-    res.send(`This URL does not belong to ${users[req.session.user_id].email}`);
+  }
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.send("This URL does not exist");
+  }
+  const userID = users[req.session.user_id].id;
+  console.log(users[req.session.user_id]);
+  const urlList = helper.urlsForUser(userID, urlDatabase);
+  console.log(urlList);
+  if (urlDatabase[shortURL].userID !== userID) {
+    return res.send(`This URL does not belong to ${users[req.session.user_id].email}`);
   } else {
-    let longURL = urlDatabase[shortURL]["longURL"];
+    const longURL = urlDatabase[shortURL]["longURL"];
     let templateVars = {
       shortURL: shortURL,
       longURL: longURL,
@@ -161,36 +193,42 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL]["longURL"];
-  res.redirect(longURL);
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.send("There is no URL associated with this link");
+  } else{
+    const longURL = urlDatabase[shortURL]["longURL"];
+    res.redirect(longURL);
+  }
 });
 
 // EDIT OR DELETE URL
 
+app.post("/urls/:shortURL/update", (req, res) => {
+  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
+  const shortURL = req.params.shortURL;
+  if (!req.session.user_id || urlList[shortURL].userID !== req.session.user_id) {
+    return res.send("This URL can only be edited by the owner");
+  } else {
+    const longURL = req.body.longURL;
+    urlDatabase[shortURL] = longURL;
+    res.redirect("/urls");
+  }
+});
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
-  let shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   if (!req.session.user_id || urlDatabase[shortURL].userID !== req.session.user_id) {
-    res.send("This URL can only be deleted by the owner");
+    return res.send("This URL can only be deleted by the owner");
   } else {
-    let shortURL = req.params.shortURL;
+    const shortURL = req.params.shortURL;
     delete urlDatabase[shortURL];
     res.redirect("/urls");
   }
 });
 
-app.post("/urls/:shortURL/update", (req, res) => {
-  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
-  let shortURL = req.params.shortURL;
-  if (!req.session.user_id || urlList[shortURL].userID !== req.session.user_id) {
-    res.send("This URL can only be edited by the owner");
-  } else {
-    let longURL = req.body.updateUrl;
-    urlDatabase[shortURL] = longURL;
-    res.redirect("/urls");
-  }
-});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
