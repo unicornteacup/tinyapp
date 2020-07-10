@@ -36,12 +36,11 @@ const users = {
   }
 }
 
-const emailLookup = function(email) {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return users[user];
+const getUserByEmail = function(email, database) {
+  for (let user in database) {
+    if (database[user].email === email) {
+      return user;
     } 
-    
   } 
 };
 
@@ -54,7 +53,7 @@ const urlsForUser = function(user_id) {
     }
   }
   return(urlList);
-}
+};
 
 
 function generateRandomString() {
@@ -108,7 +107,7 @@ app.post("/login", (req, res) => {
   if (!req.body.password) {
     return res.send("Error 400, No password entered");
   } 
-  const user = emailLookup(email)
+  const user = getUserByEmail(email, users)
   if (user) {
     if (bcrypt.compareSync(password, user.hashedPassword)) {
       req.session.user_id ="user_id";
@@ -127,7 +126,7 @@ app.post("/register", (req, res) => {
     res.send("Error 400, No email entered");
   } else if (!req.body.password) {
     res.send("Error 400, No password entered");
-  } else if (emailLookup(req.body.name)) {
+  } else if (getUserByEmail(req.body.name, users)) {
     res.send("Error 400, user already exists");
   } else {  
     let email = req.body.name;
