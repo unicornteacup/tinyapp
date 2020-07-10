@@ -15,10 +15,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 //app.use(cookieParser());
 app.set("view engine", "ejs");
 
-//*** EXAMPLE */
-//const password = "purple-monkey-dinosaur"; // found in the req.params object
-//const hashedPassword = bcrypt.hashSync(password, 10);
-
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
   "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID"}
@@ -37,30 +33,7 @@ const users = {
   }
 };
 
-const urlsForUser = function(user_id) {
-  let urlList = {
-  }
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === user_id) {
-      urlList[shortURL] = urlDatabase[shortURL]
-    }
-  }
-  return(urlList);
-};
-
-
-function generateRandomString() {
-  String.random = function (length) {
-    let radom13chars = function () {
-      return Math.random().toString(16).substring(2, 15)
-    }
-    let loops = Math.ceil(length / 13)
-    return new Array(loops).fill(radom13chars).reduce((string, func) => {
-      return string + func()
-    }, '').substring(0, length)
-  }
-  return(String.random(6))
-}
+// GET FUNCTIONS
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -126,7 +99,7 @@ app.post("/register", (req, res) => {
     let email = req.body.name;
     let password = req.body.password;
     const hashedPassword = bcrypt.hashSync(password, 10);
-    const id = generateRandomString();;
+    const id = helper.generateRandomString();;
     users[id] = {id: id, email: email, hashedPassword: hashedPassword}
     console.log(users)
     // add cookie for user_id
@@ -149,7 +122,7 @@ app.get("/urls", (req, res) => {
     res.redirect("/notloggedin");
   } else {
     console.log(req.session.user_id);
-    urlList = urlsForUser(req.session.user_id)
+    urlList = helper.urlsForUser(req.session.user_id, urlDatabase)
 
     let templateVars = { 
       urls: urlList,
@@ -187,7 +160,7 @@ app.post("/urls", (req, res) => {
   let userID = users[req.session.user_id].id
   console.log(longURL)
   console.log(userID)
-  const shortURL = generateRandomString();
+  const shortURL = helper.generateRandomString();
   urlDatabase[shortURL] = {longURL: longURL, userID: userID}
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
@@ -196,7 +169,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  const urlList = urlsForUser(users[req.session.user_id])
+  const urlList = helper.urlsForUser(users[req.session.user_id], urlDatabase)
   console.log(urlList)
   if (!req.session.user_id) {
     res.redirect("/notloggedin");
@@ -225,7 +198,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const urlList = urlsForUser(req.session.user_id);
+  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
   let shortURL = req.params.shortURL;
   if (!req.session.user_id || urlDatabase[shortURL].userID !== req.session.user_id) {
     res.send("This URL can only be deleted by the owner");
@@ -238,7 +211,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 app.post("/urls/:shortURL/update", (req, res) => {
-  const urlList = urlsForUser(req.session.user_id);
+  const urlList = helper.urlsForUser(req.session.user_id, urlDatabase);
   let shortURL = req.params.shortURL;
   if (!req.session.user_id || urlList[shortURL].userID !== req.session.user_id) {
     res.send("This URL can only be edited by the owner");
