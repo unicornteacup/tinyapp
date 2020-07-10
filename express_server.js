@@ -4,7 +4,8 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 //const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
-const cookieSession = require('cookie-session')
+const helper = require("./helpers");
+const cookieSession = require('cookie-session');
 
 app.use(cookieSession({
   name: 'session',
@@ -34,14 +35,6 @@ const users = {
     email: "user2@example.com", 
     password: "dishwasher-funk"
   }
-}
-
-const getUserByEmail = function(email, database) {
-  for (let user in database) {
-    if (database[user].email === email) {
-      return user;
-    } 
-  } 
 };
 
 const urlsForUser = function(user_id) {
@@ -107,10 +100,11 @@ app.post("/login", (req, res) => {
   if (!req.body.password) {
     return res.send("Error 400, No password entered");
   } 
-  const user = getUserByEmail(email, users)
+  const user = helper.getUserByEmail(email, users)
+  console.log(user);
   if (user) {
     if (bcrypt.compareSync(password, user.hashedPassword)) {
-      req.session.user_id ="user_id";
+      req.session.user_id = user.id;
       res.redirect("/urls");
     } else {
       res.send("Error Password incorrect");
@@ -126,7 +120,7 @@ app.post("/register", (req, res) => {
     res.send("Error 400, No email entered");
   } else if (!req.body.password) {
     res.send("Error 400, No password entered");
-  } else if (getUserByEmail(req.body.name, users)) {
+  } else if (helper.getUserByEmail(req.body.name, users)) {
     res.send("Error 400, user already exists");
   } else {  
     let email = req.body.name;
@@ -202,11 +196,11 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
-  const urlList = urlsForUser(req.session.user_id)
+  const urlList = urlsForUser(users[req.session.user_id])
   console.log(urlList)
   if (!req.session.user_id) {
     res.redirect("/notloggedin");
-  } else if (urlList[shortURL].userID !== req.session.user_id) {
+  } else if (urlList[shortURL].userID !== users[req.session.user_id]) {
     res.send(`This URL does not belong to ${users[req.session.user_id].email}`)
   } else {
     
